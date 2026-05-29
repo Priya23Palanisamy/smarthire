@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
+import { useParams } from "react-router-dom";
 import recruiterService from "../services/recruiterService";
 
 const PostJob = () => {
+  const { id } = useParams();
   const [formData, setFormData] = useState({
     title: "",
     salary: "",
@@ -14,6 +16,21 @@ const PostJob = () => {
     qualification: "",
     active: true
   });
+
+  useEffect(() => {
+  if (id) {
+    loadJob();
+  }
+}, [id]);
+
+const loadJob = async () => {
+  try {
+    const res = await recruiterService.getJobById(id);
+    setFormData(res.data);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
@@ -28,8 +45,13 @@ const PostJob = () => {
     e.preventDefault();
 
     try {
-      await recruiterService.createJob(formData);
-      alert("Job posted successfully");
+      if (id) {
+  await recruiterService.updateJob(id, formData);
+  alert("Job updated successfully");
+} else {
+  await recruiterService.createJob(formData);
+  alert("Job posted successfully");
+}
 
       setFormData({
         title: "",
@@ -55,7 +77,8 @@ const PostJob = () => {
       {/* Banner / Header Card */}
       <div className="card border-0 shadow-sm rounded-3 p-4 mb-4 bg-white">
         <h2 className="fw-bold text-dark mb-1">
-          <i className="bi bi-file-earmark-plus text-primary me-2"></i>Post a New Job Opening
+          <i className="bi bi-file-earmark-plus text-primary me-2"></i>
+          {id ? "Edit Job Opening" : "Post a New Job Opening"}
         </h2>
         <p className="text-secondary mb-0">Fill out the detailed segments below to publish a search listing for talent.</p>
       </div>
@@ -227,7 +250,7 @@ const PostJob = () => {
 
               <div className="d-grid mt-4">
                 <button type="submit" className="btn btn-primary rounded-pill py-2 fw-bold shadow-sm">
-                  Publish Job Posting
+                  {id ? "Update Job" : "Publish Job Posting"}
                 </button>
               </div>
             </div>

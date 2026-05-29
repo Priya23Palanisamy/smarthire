@@ -101,6 +101,23 @@ function App() {
 />
 
 <Route
+    path="/recruiter/edit-job/:id"
+    element={
+        <ProtectedRoute>
+            <PostJob />
+        </ProtectedRoute>
+    }
+/>
+
+<Route
+  path="/jobs/:id"
+  element={
+    <ProtectedRoute>
+      <JobDetails />
+    </ProtectedRoute>
+  }
+/>
+<Route
     path="/recruiter/applications"
     element={
         <ProtectedRoute>
