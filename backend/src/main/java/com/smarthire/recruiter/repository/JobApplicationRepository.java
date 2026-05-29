@@ -10,4 +10,8 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     List<JobApplication> findByJobRecruiterUserUsername(String username);
     List<JobApplication> findByJobIdAndJobRecruiterUserUsername(Long jobId, String username);
     long countByJobRecruiterId(Long recruiterId);
+    
+    // Candidate application lookups
+    List<JobApplication> findByUserUsername(String username);
+    boolean existsByJobIdAndUserUsername(Long jobId, String username);
 }

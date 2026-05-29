@@ -28,18 +28,23 @@ const Navbar = () => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              <Link className="nav-link fw-semibold" to="/dashboard">
-                <i className="bi bi-speedometer2 me-1"></i> Dashboard
+              <Link className="nav-link fw-semibold" to="/jobs">
+                <i className="bi bi-briefcase me-1"></i> Browse Jobs
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link fw-semibold" to="/jobs/saved">
+                <i className="bi bi-heart-fill me-1 text-danger-subtle"></i> Saved Jobs
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link fw-semibold" to="/jobs/applications">
+                <i className="bi bi-file-earmark-check me-1"></i> My Applications
               </Link>
             </li>
             <li className="nav-item">
               <Link className="nav-link fw-semibold" to="/profile">
                 <i className="bi bi-person-circle me-1"></i> My Profile
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link fw-semibold" to="/profile/resume">
-                <i className="bi bi-file-earmark-pdf me-1"></i> Resume
               </Link>
             </li>
           </ul>

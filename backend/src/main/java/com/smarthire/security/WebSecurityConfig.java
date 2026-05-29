@@ -65,6 +65,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/profile/image/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/jobs", "/api/jobs/{id:\\d+}").permitAll()
                         .requestMatchers("/api/recruiter/**").hasRole("RECRUITER")
                         .anyRequest().authenticated());
 

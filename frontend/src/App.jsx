@@ -15,6 +15,10 @@ import PostJob from "./recruiter/pages/PostJob";
 import ManageJobs from "./recruiter/pages/ManageJobs";
 import ManageApplications from "./recruiter/pages/ManageApplications";
 import RecruiterNavbar from "./recruiter/pages/RecruiterNavbar";
+import JobListing from './jobs/pages/JobListing';
+import JobDetails from './jobs/pages/JobDetails';
+import MyApplications from './jobs/pages/MyApplications';
+import SavedJobs from './jobs/pages/SavedJobs';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -37,6 +41,15 @@ const ProtectedRoute = ({ children }) => {
             {children}
         </>
     );
+};
+
+// Dynamic Dashboard Redirect based on Role
+const DashboardRedirect = () => {
+    const { user } = useAuth();
+    if (user?.roles?.includes("ROLE_RECRUITER")) {
+        return <Navigate to="/recruiter/dashboard" replace />;
+    }
+    return <Navigate to="/jobs" replace />;
 };
 
 function App() {
@@ -99,46 +112,7 @@ function App() {
     path="/dashboard"
     element={
         <ProtectedRoute>
-            <div className="container mt-5">
-                <div className="card shadow p-4 rounded-3 text-center border-0 bg-white">
-                    <h1 className="fw-bold text-primary mb-3">
-                        Welcome to SmartHire Dashboard
-                    </h1>
-
-                    <p className="text-secondary mb-4">
-                        Authentication & Profile modules are completely implemented!
-                    </p>
-
-                    <div className="row mt-4">
-                        <div className="col-md-4">
-                            <Link to="/profile" className="text-decoration-none">
-                            <div className="card p-3 shadow-sm">
-                                <h5>Profile Completion</h5>
-                                <p>Manage your profile details</p>
-                            </div>
-                            </Link>
-                        </div>
-
-                        <div className="col-md-4">
-                            <Link to="/profile" className="text-decoration-none">
-                            <div className="card p-3 shadow-sm">
-                                <h5>Resume</h5>
-                                <p>Upload and manage resumes</p>
-                            </div>
-                            </Link>
-                        </div>
-
-                        <div className="col-md-4">
-                            <Link to="/profile" className="text-decoration-none">
-                            <div className="card p-3 shadow-sm">
-                                <h5>Skills</h5>
-                                <p>Manage technical skills</p>
-                            </div>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <DashboardRedirect />
         </ProtectedRoute>
     }
 />
@@ -166,6 +140,42 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <ResumeUpload />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/jobs"
+                    element={
+                        <ProtectedRoute>
+                            <JobListing />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/jobs/:id"
+                    element={
+                        <ProtectedRoute>
+                            <JobDetails />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/jobs/applications"
+                    element={
+                        <ProtectedRoute>
+                            <MyApplications />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="/jobs/saved"
+                    element={
+                        <ProtectedRoute>
+                            <SavedJobs />
                         </ProtectedRoute>
                     }
                 />
