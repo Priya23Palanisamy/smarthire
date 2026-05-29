@@ -64,6 +64,8 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/api/profile/image/**").permitAll()
+                        .requestMatchers("/api/recruiter/**").hasRole("RECRUITER")
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());

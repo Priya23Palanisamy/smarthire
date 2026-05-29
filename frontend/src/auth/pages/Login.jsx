@@ -21,7 +21,15 @@ const Login = () => {
         try {
             const data = await authService.login(formData.usernameOrEmail, formData.password);
             login(data);
-            navigate('/dashboard');
+            console.log(data)
+            if(data.roles[0] ==="ROLE_RECRUITER")
+            {
+                navigate('/recruiter/dashboard');
+            }
+            else{
+                navigate('/dashboard');
+            }
+            
         } catch (err) {
             setError(err.response?.data?.message || 'Invalid credentials');
         } finally {
