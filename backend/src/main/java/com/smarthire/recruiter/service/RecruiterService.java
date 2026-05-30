@@ -2,20 +2,33 @@ package com.smarthire.recruiter.service;
 
 import com.smarthire.auth.entity.User;
 import com.smarthire.auth.repository.UserRepository;
+import com.smarthire.profile.service.FileStorageService;
 import com.smarthire.recruiter.dto.JobPostDto;
 import com.smarthire.recruiter.dto.JobResponseDto;
 import com.smarthire.recruiter.dto.RecruiterProfileDto;
 import com.smarthire.recruiter.entity.Job;
+import com.smarthire.recruiter.entity.JobApplication;
 import com.smarthire.recruiter.entity.Recruiter;
+import com.smarthire.recruiter.repository.JobApplicationRepository;
 import com.smarthire.recruiter.repository.JobRepository;
 import com.smarthire.recruiter.repository.RecruiterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import com.smarthire.profile.entity.Profile;
+import com.smarthire.profile.repository.ProfileRepository;
 
 @Service
 public class RecruiterService {
@@ -28,6 +41,15 @@ public class RecruiterService {
 
     @Autowired
     private JobRepository jobRepository;
+
+    @Autowired
+    private JobApplicationRepository jobApplicationRepository;
+
+    @Autowired
+    private FileStorageService fileStorageService;
+
+    @Autowired
+    private ProfileRepository profileRepository;
 
     @Transactional
     public Recruiter getOrCreateRecruiter(String username) {
@@ -174,4 +196,48 @@ public class RecruiterService {
                 .website(job.getRecruiter().getWebsite())
                 .build();
     }
+
+    public ResponseEntity<Resource> downloadApplicantResume(Long applicationId) {
+
+    JobApplication application =
+            jobApplicationRepository.findById(applicationId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("Application not found"));
+
+    User user = application.getUser();
+
+    Profile profile = profileRepository.findByUserId(user.getId())
+            .orElseThrow(() ->
+                    new IllegalArgumentException("Profile not found"));
+
+    if (profile.getResume() == null) {
+        throw new IllegalArgumentException("Resume not uploaded");
+    }
+
+    String fileName = profile.getResume().getFileName();
+
+    try {
+
+        Path file = fileStorageService.loadResume(fileName);
+
+        Resource resource = new UrlResource(file.toUri());
+
+        String contentType = Files.probeContentType(file);
+
+        if (contentType == null) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" +
+                                resource.getFilename() + "\"")
+                .body(resource);
+
+    } catch (Exception e) {
+        throw new RuntimeException("Resume download failed");
+    }
+}
 }

@@ -21,6 +21,16 @@ const updateProfile = (profileData) => {
   return axios.put(`${API_URL}/profile`, profileData, { headers: getAuthHeader() });
 };
 
+const downloadResume = (applicationId) => {
+  return axios.get(
+    `${API_URL}/applications/${applicationId}/resume`,
+    {
+      headers: getAuthHeader(),
+      responseType: 'blob'
+    }
+  );
+};
+
 // Job CRUD APIs
 const createJob = (jobData) => {
   return axios.post(`${API_URL}/jobs`, jobData, { headers: getAuthHeader() });
@@ -55,6 +65,10 @@ const updateApplicationStatus = (applicationId, statusData) => {
   return axios.put(`${API_URL}/application-status/${applicationId}`, statusData, { headers: getAuthHeader() });
 };
 
+const getHiringRiskScore = (applicationId) => {
+  return axios.get(`${API_URL}/applications/${applicationId}/hiring-risk`, { headers: getAuthHeader() });
+};
+
 const recruiterService = {
   getProfile,
   createProfile,
@@ -67,6 +81,9 @@ const recruiterService = {
   getApplications,
   getJobApplications,
   updateApplicationStatus,
+  getHiringRiskScore,
+  downloadResume,
 };
 
 export default recruiterService;
+

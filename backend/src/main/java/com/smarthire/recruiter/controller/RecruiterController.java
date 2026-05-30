@@ -1,8 +1,11 @@
 package com.smarthire.recruiter.controller;
 
+import com.smarthire.profile.service.FileStorageService;
+import com.smarthire.profile.service.ProfileService;
 import com.smarthire.recruiter.dto.*;
 import com.smarthire.recruiter.service.JobApplicationService;
 import com.smarthire.recruiter.service.RecruiterService;
+import com.smarthire.recruiter.service.HiringRiskService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/recruiter")
@@ -26,9 +37,19 @@ public class RecruiterController {
     @Autowired
     private JobApplicationService jobApplicationService;
 
+    @Autowired
+    private HiringRiskService hiringRiskService;
+
+    @Autowired
+    private ProfileService profileService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
+
     private String getAuthenticatedUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
+
 
     // PROFILE APIS
     @PostMapping("/profile")
@@ -106,4 +127,17 @@ public class RecruiterController {
         String username = getAuthenticatedUsername();
         return ResponseEntity.ok(jobApplicationService.updateApplicationStatus(username, id, dto));
     }
+
+    @GetMapping("/applications/{id}/hiring-risk")
+    public ResponseEntity<HiringRiskResponseDto> getHiringRisk(@PathVariable Long id) {
+        return ResponseEntity.ok(hiringRiskService.calculateHiringRisk(id));
+    }
+
+    @GetMapping("/applications/{id}/resume")
+public ResponseEntity<Resource> downloadApplicantResume(
+        @PathVariable Long id) {
+
+    return recruiterService.downloadApplicantResume(id);
 }
+}
+
