@@ -12,13 +12,32 @@ const JobDetails = () => {
   const [submitting, setSubmitting] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
   const [showApplyBox, setShowApplyBox] = useState(false);
+  
+  // Skill Gap Analyzer state
+  const [skillGap, setSkillGap] = useState(null);
+  const [loadingSkillGap, setLoadingSkillGap] = useState(false);
 
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchJobDetails();
-  }, [id]);
+    if (user && !user.roles?.includes('ROLE_RECRUITER')) {
+      fetchSkillGap();
+    }
+  }, [id, user]);
+
+  const fetchSkillGap = async () => {
+    setLoadingSkillGap(true);
+    try {
+      const response = await jobService.getSkillGap(id);
+      setSkillGap(response.data);
+    } catch (err) {
+      console.error('Error fetching skill gap analyzer data:', err);
+    } finally {
+      setLoadingSkillGap(false);
+    }
+  };
 
   const fetchJobDetails = async () => {
     try {
@@ -33,6 +52,7 @@ const JobDetails = () => {
       setLoading(false);
     }
   };
+
 
   const checkApplicationStatus = async (jobId) => {
     try {
@@ -154,6 +174,118 @@ const JobDetails = () => {
                 </span>
               </div>
             </div>
+
+            {/* AI Skill Gap Analyzer UI Card */}
+            {user && !user.roles?.includes('ROLE_RECRUITER') && (
+              <div className="card border-0 shadow-sm rounded-3 p-4 mb-4 bg-white border-start border-4 border-primary">
+                <div className="d-flex align-items-center mb-3">
+                  <div className="bg-primary-subtle text-primary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
+                    <i className="bi bi-cpu fs-5"></i>
+                  </div>
+                  <div>
+                    <h5 className="fw-bold text-dark mb-0">AI Skill Gap Analyzer</h5>
+                    <span className="small text-muted">Real-time matching against your profile skills</span>
+                  </div>
+                </div>
+
+                {loadingSkillGap ? (
+                  <div className="text-center py-3">
+                    <div className="spinner-border spinner-border-sm text-primary" role="status">
+                      <span className="visually-hidden">Loading analysis...</span>
+                    </div>
+                    <span className="ms-2 small text-secondary">Analyzing skill match...</span>
+                  </div>
+                ) : skillGap ? (
+                  <div>
+                    {/* Match Score & Progress Bar */}
+                    <div className="row align-items-center mb-3 g-3">
+                      <div className="col-sm-4 text-center border-end">
+                        <h2 className={`fw-bold mb-0 ${
+                          skillGap.matchScore >= 75 ? 'text-success' : skillGap.matchScore >= 40 ? 'text-warning' : 'text-danger'
+                        }`}>{skillGap.matchScore}%</h2>
+                        <span className="small fw-semibold text-secondary">Match Score</span>
+                      </div>
+                      <div className="col-sm-8">
+                        <div className="d-flex justify-content-between mb-1 small text-muted">
+                          <span>Match Strength</span>
+                          <span>{skillGap.matchedCount} of {skillGap.totalJobSkills} skills matched</span>
+                        </div>
+                        <div className="progress" style={{ height: '8px' }}>
+                          <div
+                            className={`progress-bar progress-bar-striped progress-bar-animated ${
+                              skillGap.matchScore >= 75 ? 'bg-success' : skillGap.matchScore >= 40 ? 'bg-warning' : 'bg-danger'
+                            }`}
+                            role="progressbar"
+                            style={{ width: `${skillGap.matchScore}%` }}
+                            aria-valuenow={skillGap.matchScore}
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Skill Breakdown lists */}
+                    <div className="row mb-3 g-3">
+                      <div className="col-md-6">
+                        <h6 className="fw-bold text-dark small mb-2">
+                          <i className="bi bi-check-circle-fill text-success me-1"></i> Matched Skills ({skillGap.matchedCount})
+                        </h6>
+                        {skillGap.matchedSkills && skillGap.matchedSkills.length > 0 ? (
+                          <div className="d-flex flex-wrap gap-1">
+                            {skillGap.matchedSkills.map((skill, index) => (
+                              <span key={index} className="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1.5 small fw-semibold">
+                                ✓ {skill}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="small text-secondary d-block ps-1">No matching skills found.</span>
+                        )}
+                      </div>
+
+                      <div className="col-md-6">
+                        <h6 className="fw-bold text-dark small mb-2">
+                          <i className="bi bi-x-circle-fill text-danger me-1"></i> Missing Skills ({skillGap.missingCount})
+                        </h6>
+                        {skillGap.missingSkills && skillGap.missingSkills.length > 0 ? (
+                          <div className="d-flex flex-wrap gap-1">
+                            {skillGap.missingSkills.map((skill, index) => (
+                              <span key={index} className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1.5 small fw-semibold">
+                                ✗ {skill}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="small text-success d-block ps-1">You have all the required skills!</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Recommendations Section */}
+                    {skillGap.recommendations && skillGap.recommendations.length > 0 && (
+                      <div className="bg-light rounded p-3 border-start border-3 border-warning mt-2">
+                        <h6 className="fw-bold text-dark small mb-2">
+                          <i className="bi bi-lightbulb-fill text-warning me-1"></i> Suggested Recommendations:
+                        </h6>
+                        <ul className="list-unstyled mb-0 small text-secondary">
+                          {skillGap.recommendations.map((rec, index) => (
+                            <li key={index} className="mb-1 d-flex align-items-center">
+                              <i className="bi bi-arrow-right-short text-warning me-1 fw-bold fs-5"></i>
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="alert alert-info py-2 small mb-0">
+                    <i className="bi bi-info-circle me-1"></i> Add skills to your profile to see compatibility matches here.
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Interactive Apply Area */}
             <div className="border-top pt-4">

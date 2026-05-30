@@ -48,6 +48,11 @@ const getSavedJobIds = () => {
   return axios.get(`${API_URL}/saved-ids`, { headers: getAuthHeader() });
 };
 
+// Authenticated Get Skill Gap Analyzer result
+const getSkillGap = (jobId) => {
+  return axios.get(`${API_URL}/${jobId}/skill-gap`, { headers: getAuthHeader() });
+};
+
 const jobService = {
   getActiveJobs,
   getJobById,
@@ -57,6 +62,8 @@ const jobService = {
   unsaveJob,
   getSavedJobs,
   getSavedJobIds,
+  getSkillGap,
 };
 
 export default jobService;
+

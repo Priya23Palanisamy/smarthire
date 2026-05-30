@@ -2,9 +2,14 @@ package com.smarthire.jobs.controller;
 
 import com.smarthire.jobs.dto.CandidateApplicationResponseDto;
 import com.smarthire.jobs.dto.JobApplicationDto;
+import com.smarthire.jobs.dto.SkillGapResponseDto;
 import com.smarthire.jobs.service.JobApplicationManagerService;
 import com.smarthire.jobs.service.JobSearchService;
 import com.smarthire.jobs.service.SavedJobsService;
+import com.smarthire.jobs.service.SkillGapService;
+import com.smarthire.profile.dto.ProfileDto;
+import com.smarthire.profile.dto.SkillDto;
+import com.smarthire.profile.service.ProfileService;
 import com.smarthire.recruiter.dto.JobResponseDto;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/jobs")
@@ -30,9 +36,16 @@ public class JobSeekerController {
     @Autowired
     private SavedJobsService savedJobsService;
 
+    @Autowired
+    private ProfileService profileService;
+
+    @Autowired
+    private SkillGapService skillGapService;
+
     private String getAuthenticatedUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
+
 
     // PUBLIC ENDPOINTS
     @GetMapping
@@ -115,4 +128,24 @@ public class JobSeekerController {
         String username = getAuthenticatedUsername();
         return ResponseEntity.ok(savedJobsService.getSavedJobIds(username));
     }
+
+    @GetMapping("/{id}/skill-gap")
+    public ResponseEntity<?> getJobSkillGap(@PathVariable Long id) {
+        try {
+            String username = getAuthenticatedUsername();
+            ProfileDto profileDto = profileService.getProfileDto(username);
+            List<String> candidateSkills = profileDto.getSkills().stream()
+                    .map(SkillDto::getName)
+                    .collect(Collectors.toList());
+
+            JobResponseDto job = jobSearchService.getJobDetails(id);
+            SkillGapResponseDto skillGap = skillGapService.calculateSkillGap(candidateSkills, job.getSkills());
+            return ResponseEntity.ok(skillGap);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }
+
